@@ -362,70 +362,22 @@ type ErrorResponse struct {
 }
 
 type Error struct {
-	Code       string     `json:"code"`
-	Message    Message    `json:"message"`
-	InnerError InnerError `json:"innererror"`
-}
-
-func (e Error) Empty() bool {
-	return e.Code == "" && e.Message.Value == "" && e.InnerError.Message == ""
+	Message       string `json:"message"`
+	MessageDetail string `json:"MessageDetail"`
 }
 
 func (e Error) Error() string {
-	if e.Code != "" {
-		if e.InnerError.InternalException.Message != "" {
-			return fmt.Sprintf("%s: %s", e.Code, e.InnerError.InternalException.Message)
-		}
-
-		if e.InnerError.Message != "" {
-			return fmt.Sprintf("%s: %s", e.Code, e.InnerError.Message)
-		}
-
-		return fmt.Sprintf("%s: %s", e.Code, e.Message.Value)
-	}
-
-	if e.InnerError.InternalException.Message != "" {
-		return fmt.Sprintf("%s", e.InnerError.InternalException.Message)
-	}
-
-	if e.InnerError.Message != "" {
-		return fmt.Sprintf("%s", e.InnerError.Message)
-	}
-
-	return fmt.Sprintf("%s", e.Message.Value)
-}
-
-type Message struct {
-	Lang  string `json:"lang"`
-	Value string `json:"value"`
-}
-
-type InnerError struct {
-	Message           string            `json:"message"`
-	Type              string            `json:"type"`
-	Stacktrace        string            `json:"stacktrace"`
-	InternalException InternalException `json:"internalexception"`
-}
-
-type InternalException struct {
-	Message    string `json:"message"`
-	Type       string `json:"type"`
-	Stacktrace string `json:"stacktrace"`
+	return fmt.Sprintf("%s: %s", e.Message, e.MessageDetail)
 }
 
 func (r *ErrorResponse) UnmarshalJSON(data []byte) error {
-	tmp := struct {
-		Error Error `json:"error"`
-	}{}
-
-	err := json.Unmarshal(data, &tmp)
+	e := Error{}
+	err := json.Unmarshal(data, &e)
 	if err != nil {
 		return err
 	}
 
-	if !tmp.Error.Empty() {
-		r.Errors = append(r.Errors, tmp.Error)
-	}
+	r.Errors = append(r.Errors, e)
 
 	return nil
 }

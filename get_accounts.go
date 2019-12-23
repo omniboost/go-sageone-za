@@ -79,7 +79,6 @@ func (r GetAccountsRequest) NewGetAccountsRequestBody() GetAccountsRequestBody {
 }
 
 type GetAccountsRequestBody struct {
-	NilBody
 }
 
 func (r *GetAccountsRequest) RequestBody() *GetAccountsRequestBody {
