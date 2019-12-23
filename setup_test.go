@@ -17,7 +17,7 @@ func TestMain(m *testing.M) {
 	baseURLString := os.Getenv("BASE_URL")
 	apiID := os.Getenv("API_ID")
 	apiKey := os.Getenv("API_KEY")
-	debug := os.Getenv("GLOBE_DEBUG")
+	debug := os.Getenv("DEBUG")
 
 	client = aktiva.NewClient(nil, apiID, apiKey)
 	if debug != "" {

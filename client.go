@@ -20,6 +20,7 @@ import (
 	"time"
 
 	ntlmssp "github.com/Azure/go-ntlmssp"
+	"github.com/omniboost/go-merit-aktiva/utils"
 )
 
 const (
@@ -196,14 +197,19 @@ func (c *Client) NewRequest(ctx context.Context, method string, URL url.URL, bod
 		}
 	}
 
+	// create new http request
+	req, err := http.NewRequest(method, URL.String(), buf)
+	if err != nil {
+		return nil, err
+	}
+
 	values := url.Values{}
 	values.Add("ApiId", c.APIID())
 	timestamp := c.GenerateTimestamp()
 	values.Add("timestamp", timestamp.String())
 	values.Add("timestamp", c.GenerateSignature(timestamp, buf))
 
-	// create new http request
-	req, err := http.NewRequest(method, URL.String(), buf)
+	err = utils.AddURLValuesToRequest(values, req, true)
 	if err != nil {
 		return nil, err
 	}

@@ -40,10 +40,10 @@ func AddQueryParamsToRequest(requestParams interface{}, req *http.Request, skipE
 		}
 	}
 
-	return AddURLValuesToRequest(params, req*http.Request, skipEmpty)
+	return AddURLValuesToRequest(params, req, skipEmpty)
 }
 
-func AddURLValuesToRequest(params url.Values, req, skipEmpty bool) error {
+func AddURLValuesToRequest(params url.Values, req *http.Request, skipEmpty bool) error {
 	query := req.URL.Query()
 	for k, vals := range params {
 		for _, v := range vals {
