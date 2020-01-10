@@ -207,7 +207,7 @@ func (c *Client) NewRequest(ctx context.Context, method string, URL url.URL, bod
 	values.Add("ApiId", c.APIID())
 	timestamp := c.GenerateTimestamp()
 	values.Add("timestamp", timestamp.String())
-	values.Add("timestamp", c.GenerateSignature(timestamp, buf))
+	values.Add("signature", c.GenerateSignature(timestamp, buf))
 
 	err = utils.AddURLValuesToRequest(values, req, true)
 	if err != nil {
