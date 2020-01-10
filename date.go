@@ -5,23 +5,23 @@ import (
 	"time"
 )
 
-type DateTime struct {
+type Date struct {
 	time.Time
 }
 
-func (d *DateTime) MarshalJSON() ([]byte, error) {
+func (d *Date) MarshalJSON() ([]byte, error) {
 	if d.Time.IsZero() {
 		return json.Marshal(nil)
 	}
 
-	return json.Marshal(d.Time.Format("20060102150405"))
+	return json.Marshal(d.Time.Format("20060102"))
 }
 
-func (d DateTime) IsEmpty() bool {
+func (d Date) IsEmpty() bool {
 	return d.Time.IsZero()
 }
 
-func (d *DateTime) UnmarshalJSON(text []byte) (err error) {
+func (d *Date) UnmarshalJSON(text []byte) (err error) {
 	var value string
 	err = json.Unmarshal(text, &value)
 	if err != nil {
@@ -38,10 +38,10 @@ func (d *DateTime) UnmarshalJSON(text []byte) (err error) {
 		return nil
 	}
 
-	d.Time, err = time.Parse("20060102150405", value)
+	d.Time, err = time.Parse("20060102", value)
 	return
 }
 
-func (d DateTime) String() string {
-	return d.Time.Format("20060102150405")
+func (d Date) String() string {
+	return d.Time.Format("20060102")
 }
