@@ -120,4 +120,11 @@ func (r *GetAccountsRequest) Do() (GetAccountsResponseBody, error) {
 type Accounts []Account
 
 type Account struct {
+	AccountID        string `json:"AccountID"`
+	NonActive        string `json:"NonActive"`
+	Code             string `json:"Code"`
+	Name             string `json:"Name"`
+	TaxName          string `json:"TaxName"`
+	LinkedVendorName string `json:"LinkedVendorName"`
+	IsParent         string `json:"IsParent"`
 }

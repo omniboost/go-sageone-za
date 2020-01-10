@@ -93,7 +93,7 @@ func (r *GetCustomersRequest) NewResponseBody() *GetCustomersResponseBody {
 	return &GetCustomersResponseBody{}
 }
 
-type GetCustomersResponseBody Accounts
+type GetCustomersResponseBody Customers
 
 func (r *GetCustomersRequest) URL() url.URL {
 	return r.client.GetEndpointURL("getcustomers", r.PathParams())

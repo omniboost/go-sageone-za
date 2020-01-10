@@ -120,4 +120,8 @@ func (r *GetTaxesRequest) Do() (GetTaxesResponseBody, error) {
 type Taxes []Tax
 
 type Tax struct {
+	ID     string  `json:"Id"`
+	Code   string  `json:"Code"`
+	Name   string  `json:"Name"`
+	TaxPct float64 `json:"TaxPct"`
 }
