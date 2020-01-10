@@ -278,20 +278,30 @@ func (c *Client) Do(req *http.Request, responseBody interface{}) (*http.Response
 	// 	return httpResp, err
 	// }
 
-	// type Wrapper struct {
-	// 	D struct {
-	// 		Next     string       `json:"__next"`
-	// 		MetaData edm.MetaData `json:"__metadata"`
-	// 	} `json:"d"`
-	// }
-
 	// try to decode body into interface parameter
 	// w := &Wrapper{}
 	dec := json.NewDecoder(httpResp.Body)
 	if c.disallowUnknownFields {
 		dec.DisallowUnknownFields()
 	}
-	log.Printf("%+v", responseBody)
+
+	var unescapedBody string
+	err = dec.Decode(&unescapedBody)
+	if err != nil && err != io.EOF {
+		// create a simple error response
+		errorResponse := &ErrorResponse{Response: httpResp}
+		errorResponse.Errors = append(errorResponse.Errors, err)
+		return httpResp, errorResponse
+	}
+
+	r := strings.NewReader(unescapedBody)
+	dec = json.NewDecoder(r)
+	if c.disallowUnknownFields {
+		dec.DisallowUnknownFields()
+	}
+
+	log.Println(unescapedBody)
+
 	err = dec.Decode(responseBody)
 	if err != nil && err != io.EOF {
 		// create a simple error response
