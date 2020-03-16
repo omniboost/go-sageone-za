@@ -1,4 +1,4 @@
-package aktiva_test
+package sage_test
 
 import (
 	"encoding/json"
@@ -6,8 +6,8 @@ import (
 	"testing"
 )
 
-func TestGetCustomers(t *testing.T) {
-	req := client.NewGetCustomersRequest()
+func TestGetCompanies(t *testing.T) {
+	req := client.NewGetCompaniesRequest()
 	resp, err := req.Do()
 	if err != nil {
 		t.Error(err)

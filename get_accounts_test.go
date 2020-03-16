@@ -1,4 +1,4 @@
-package aktiva_test
+package sage_test
 
 import (
 	"encoding/json"
@@ -8,6 +8,7 @@ import (
 
 func TestGetAccounts(t *testing.T) {
 	req := client.NewGetAccountsRequest()
+	req.QueryParams().CompanyID = companyId
 	resp, err := req.Do()
 	if err != nil {
 		t.Error(err)

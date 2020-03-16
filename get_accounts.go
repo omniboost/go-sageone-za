@@ -1,10 +1,10 @@
-package aktiva
+package sage
 
 import (
 	"net/http"
 	"net/url"
 
-	"github.com/omniboost/go-merit-aktiva/utils"
+	"github.com/omniboost/go-sageone-za/utils"
 )
 
 func (c *Client) NewGetAccountsRequest() GetAccountsRequest {
@@ -33,7 +33,9 @@ func (r GetAccountsRequest) NewGetAccountsQueryParams() *GetAccountsQueryParams 
 	return &GetAccountsQueryParams{}
 }
 
-type GetAccountsQueryParams struct{}
+type GetAccountsQueryParams struct {
+	CompanyID int `schema:"CompanyId"`
+}
 
 func (p GetAccountsQueryParams) ToURLValues() (url.Values, error) {
 	encoder := utils.NewSchemaEncoder()
@@ -78,8 +80,7 @@ func (r GetAccountsRequest) NewGetAccountsRequestBody() GetAccountsRequestBody {
 	return GetAccountsRequestBody{}
 }
 
-type GetAccountsRequestBody struct {
-}
+type GetAccountsRequestBody struct{}
 
 func (r *GetAccountsRequest) RequestBody() *GetAccountsRequestBody {
 	return &r.requestBody
@@ -93,10 +94,14 @@ func (r *GetAccountsRequest) NewResponseBody() *GetAccountsResponseBody {
 	return &GetAccountsResponseBody{}
 }
 
-type GetAccountsResponseBody Accounts
+type GetAccountsResponseBody struct {
+	TotalResults    int `json:"TotalResults"`
+	ReturnedResults int `json:"ReturnedResults"`
+	Results         Accounts
+}
 
 func (r *GetAccountsRequest) URL() url.URL {
-	return r.client.GetEndpointURL("getaccounts", r.PathParams())
+	return r.client.GetEndpointURL("/Account/Get", r.PathParams())
 }
 
 func (r *GetAccountsRequest) Do() (GetAccountsResponseBody, error) {
@@ -120,11 +125,37 @@ func (r *GetAccountsRequest) Do() (GetAccountsResponseBody, error) {
 type Accounts []Account
 
 type Account struct {
-	AccountID        string `json:"AccountID"`
-	NonActive        string `json:"NonActive"`
-	Code             string `json:"Code"`
-	Name             string `json:"Name"`
-	TaxName          string `json:"TaxName"`
-	LinkedVendorName string `json:"LinkedVendorName"`
-	IsParent         string `json:"IsParent"`
+	Name     string `json:"Name"`
+	Category struct {
+		Comment     string `json:"Comment"`
+		Order       int    `json:"Order"`
+		Description string `json:"Description"`
+		ID          int    `json:"ID"`
+		Modified    string `json:"Modified"`
+		Created     string `json:"Created"`
+	} `json:"Category"`
+	Active             bool    `json:"Active"`
+	Balance            float64 `json:"Balance"`
+	Description        string  `json:"Description"`
+	ReportingGroupID   int     `json:"ReportingGroupId"`
+	UnallocatedAccount bool    `json:"UnallocatedAccount"`
+	IsTaxLocked        bool    `json:"IsTaxLocked"`
+	Modified           string  `json:"Modified"`
+	Created            string  `json:"Created"`
+	AccountType        int     `json:"AccountType"`
+	HasActivity        bool    `json:"HasActivity"`
+	DefaultTaxTypeID   int     `json:"DefaultTaxTypeId"`
+	DefaultTaxType     struct {
+		ID                int     `json:"ID"`
+		Name              string  `json:"Name"`
+		Percentage        float64 `json:"Percentage"`
+		IsDefault         bool    `json:"IsDefault"`
+		HasActivity       bool    `json:"HasActivity"`
+		IsManualTax       bool    `json:"IsManualTax"`
+		Active            bool    `json:"Active"`
+		Created           string  `json:"Created"`
+		Modified          string  `json:"Modified"`
+		TaxTypeDefaultUID string  `json:"TaxTypeDefaultUID"`
+	} `json:"DefaultTaxType"`
+	ID int `json:"ID"`
 }

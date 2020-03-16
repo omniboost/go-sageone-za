@@ -1,11 +1,8 @@
-package aktiva
+package sage
 
 import (
 	"bytes"
 	"context"
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,16 +13,16 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"strings"
+	"sync"
 	"text/template"
-	"time"
 
 	ntlmssp "github.com/Azure/go-ntlmssp"
-	"github.com/omniboost/go-merit-aktiva/utils"
+	"github.com/omniboost/go-sageone-za/utils"
 )
 
 const (
 	libraryVersion = "0.0.1"
-	userAgent      = "go-merit-aktiva/" + libraryVersion
+	userAgent      = "go-sageone-za/" + libraryVersion
 	mediaType      = "application/json"
 	charset        = "utf-8"
 )
@@ -33,13 +30,13 @@ const (
 var (
 	BaseURL = url.URL{
 		Scheme: "https",
-		Host:   "aktiva.merit.ee",
-		Path:   "/api/v1/",
+		Host:   "accounting.sageone.co.za",
+		Path:   "/api/2.0.0/",
 	}
 )
 
 // NewClient returns a new Exact Globe Client client
-func NewClient(httpClient *http.Client, apiID, apiKey string) *Client {
+func NewClient(httpClient *http.Client, user, password, apiKey string) *Client {
 	if httpClient == nil {
 		httpClient = http.DefaultClient
 	}
@@ -47,7 +44,8 @@ func NewClient(httpClient *http.Client, apiID, apiKey string) *Client {
 	client := &Client{}
 
 	client.SetHTTPClient(httpClient)
-	client.SetAPIID(apiID)
+	client.SetUser(user)
+	client.SetPassword(password)
 	client.SetAPIKey(apiKey)
 	client.SetBaseURL(BaseURL)
 	client.SetDebug(false)
@@ -67,8 +65,9 @@ type Client struct {
 	baseURL url.URL
 
 	// credentials
-	apiID  string
-	apiKey string
+	user     string
+	password string
+	apiKey   string
 
 	// User agent for client
 	userAgent string
@@ -101,12 +100,20 @@ func (c *Client) SetDebug(debug bool) {
 	c.debug = debug
 }
 
-func (c Client) APIID() string {
-	return c.apiID
+func (c Client) User() string {
+	return c.user
 }
 
-func (c *Client) SetAPIID(apiID string) {
-	c.apiID = apiID
+func (c *Client) SetUser(user string) {
+	c.user = user
+}
+
+func (c Client) Password() string {
+	return c.password
+}
+
+func (c *Client) SetPassword(password string) {
+	c.password = password
 }
 
 func (c Client) APIKey() string {
@@ -147,20 +154,6 @@ func (c *Client) SetUserAgent(userAgent string) {
 
 func (c Client) UserAgent() string {
 	return userAgent
-}
-
-func (c Client) GenerateTimestamp() DateTime {
-	return DateTime{time.Now()}
-}
-
-func (c *Client) GenerateSignature(timestamp DateTime, body *bytes.Buffer) string {
-	h := hmac.New(sha256.New, []byte(c.APIKey()))
-	data := []byte{}
-	data = append(data, []byte(c.APIID())...)
-	data = append(data, []byte(timestamp.String())...)
-	data = append(data, body.Bytes()...)
-	h.Write(data)
-	return base64.StdEncoding.EncodeToString(h.Sum(nil))
 }
 
 func (c *Client) SetDisallowUnknownFields(disallowUnknownFields bool) {
@@ -204,10 +197,7 @@ func (c *Client) NewRequest(ctx context.Context, method string, URL url.URL, bod
 	}
 
 	values := url.Values{}
-	values.Add("ApiId", c.APIID())
-	timestamp := c.GenerateTimestamp()
-	values.Add("timestamp", timestamp.String())
-	values.Add("signature", c.GenerateSignature(timestamp, buf))
+	values.Add("ApiKey", c.APIKey())
 
 	err = utils.AddURLValuesToRequest(values, req, true)
 	if err != nil {
@@ -231,6 +221,8 @@ func (c *Client) NewRequest(ctx context.Context, method string, URL url.URL, bod
 // pointed to by v, or returned as an error if an Client error has occurred. If v implements the io.Writer interface,
 // the raw response will be written to v, without attempting to decode it.
 func (c *Client) Do(req *http.Request, responseBody interface{}) (*http.Response, error) {
+	req.SetBasicAuth(c.user, c.password)
+
 	if c.debug == true {
 		dump, _ := httputil.DumpRequestOut(req, true)
 		log.Println(string(dump))
@@ -279,44 +271,77 @@ func (c *Client) Do(req *http.Request, responseBody interface{}) (*http.Response
 	// }
 
 	// try to decode body into interface parameter
-	// w := &Wrapper{}
-	dec := json.NewDecoder(httpResp.Body)
-	if c.disallowUnknownFields {
-		dec.DisallowUnknownFields()
+	if responseBody == nil {
+		return httpResp, nil
 	}
 
-	var unescapedBody string
-	err = dec.Decode(&unescapedBody)
-	if err != nil && err != io.EOF {
-		// create a simple error response
-		errorResponse := &ErrorResponse{Response: httpResp}
-		errorResponse.Errors = append(errorResponse.Errors, err)
-		return httpResp, errorResponse
+	errorResponse := &ErrorResponse{Response: httpResp}
+	err = c.Unmarshal(httpResp.Body, &responseBody, &errorResponse)
+	if err != nil {
+		return httpResp, err
 	}
 
-	r := strings.NewReader(unescapedBody)
-	dec = json.NewDecoder(r)
-	if c.disallowUnknownFields {
-		dec.DisallowUnknownFields()
-	}
-
-	log.Println(unescapedBody)
-
-	err = dec.Decode(responseBody)
-	if err != nil && err != io.EOF {
-		// create a simple error response
-		errorResponse := &ErrorResponse{Response: httpResp}
-		errorResponse.Errors = append(errorResponse.Errors, err)
-		return httpResp, errorResponse
-	}
-
-	// err = json.Unmarshal(w.D.Results, responseBody)
-	// if err != nil && err != io.EOF {
-	// 	// @TODO: fix this
-	// 	log.Fatal(err)
+	// if len(errorResponse.Messages) > 0 {
+	// 	return httpResp, errorResponse
 	// }
 
 	return httpResp, nil
+}
+
+func (c *Client) Unmarshal(r io.Reader, vv ...interface{}) error {
+	if len(vv) == 0 {
+		return nil
+	}
+
+	wg := sync.WaitGroup{}
+	wg.Add(len(vv))
+	errs := []error{}
+	writers := make([]io.Writer, len(vv))
+
+	for i, v := range vv {
+		pr, pw := io.Pipe()
+		writers[i] = pw
+
+		go func(i int, v interface{}, pr *io.PipeReader, pw *io.PipeWriter) {
+			dec := json.NewDecoder(pr)
+			if c.disallowUnknownFields {
+				dec.DisallowUnknownFields()
+			}
+
+			err := dec.Decode(v)
+			if err != nil {
+				errs = append(errs, err)
+			}
+
+			// mark routine as done
+			wg.Done()
+
+			// Drain reader
+			io.Copy(ioutil.Discard, pr)
+
+			// close reader
+			// pr.CloseWithError(err)
+			pr.Close()
+		}(i, v, pr, pw)
+	}
+
+	// copy the data in a multiwriter
+	mw := io.MultiWriter(writers...)
+	_, err := io.Copy(mw, r)
+	if err != nil {
+		return err
+	}
+
+	wg.Wait()
+	if len(errs) == len(vv) {
+		// Everything errored
+		msgs := make([]string, len(errs))
+		for i, e := range errs {
+			msgs[i] = fmt.Sprint(e)
+		}
+		return errors.New(strings.Join(msgs, ", "))
+	}
+	return nil
 }
 
 // CheckResponse checks the Client response for errors, and returns them if

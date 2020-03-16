@@ -1,25 +1,35 @@
-package aktiva_test
+package sage_test
 
 import (
 	"log"
 	"net/url"
 	"os"
+	"strconv"
 	"testing"
 
-	aktiva "github.com/omniboost/go-merit-aktiva"
+	sage "github.com/omniboost/go-sageone-za"
 )
 
 var (
-	client *aktiva.Client
+	client    *sage.Client
+	companyId int
 )
 
 func TestMain(m *testing.M) {
+	var err error
+
 	baseURLString := os.Getenv("BASE_URL")
-	apiID := os.Getenv("API_ID")
+	user := os.Getenv("USER")
+	password := os.Getenv("PASSWORD")
 	apiKey := os.Getenv("API_KEY")
 	debug := os.Getenv("DEBUG")
+	id := os.Getenv("TEST_COMPANY_ID")
+	companyId, err = strconv.Atoi(id)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	client = aktiva.NewClient(nil, apiID, apiKey)
+	client = sage.NewClient(nil, user, password, apiKey)
 	if debug != "" {
 		client.SetDebug(true)
 	}
