@@ -14,7 +14,7 @@ func (d *Date) MarshalJSON() ([]byte, error) {
 		return json.Marshal(nil)
 	}
 
-	return json.Marshal(d.Time.Format("20060102"))
+	return json.Marshal(d.Time.Format("2006-01-02"))
 }
 
 func (d Date) IsEmpty() bool {
@@ -38,10 +38,15 @@ func (d *Date) UnmarshalJSON(text []byte) (err error) {
 		return nil
 	}
 
-	d.Time, err = time.Parse("20060102", value)
+	d.Time, err = time.Parse("2006-01-02T15:04:05", value)
+	if err == nil {
+		return nil
+	}
+
+	d.Time, err = time.Parse("2006-01-02", value)
 	return
 }
 
 func (d Date) String() string {
-	return d.Time.Format("20060102")
+	return d.Time.Format("2006-01-02")
 }

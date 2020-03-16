@@ -275,8 +275,8 @@ func (c *Client) Do(req *http.Request, responseBody interface{}) (*http.Response
 		return httpResp, nil
 	}
 
-	errorResponse := &ErrorResponse{Response: httpResp}
-	err = c.Unmarshal(httpResp.Body, &responseBody, &errorResponse)
+	// errorResponse := &ErrorResponse{Response: httpResp}
+	err = c.Unmarshal(httpResp.Body, &responseBody)
 	if err != nil {
 		return httpResp, err
 	}

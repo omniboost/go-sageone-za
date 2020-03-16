@@ -12,7 +12,7 @@ import (
 
 var (
 	client    *sage.Client
-	companyId int
+	companyID int
 )
 
 func TestMain(m *testing.M) {
@@ -24,7 +24,7 @@ func TestMain(m *testing.M) {
 	apiKey := os.Getenv("API_KEY")
 	debug := os.Getenv("DEBUG")
 	id := os.Getenv("TEST_COMPANY_ID")
-	companyId, err = strconv.Atoi(id)
+	companyID, err = strconv.Atoi(id)
 	if err != nil {
 		log.Fatal(err)
 	}

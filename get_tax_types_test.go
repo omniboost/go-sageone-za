@@ -6,8 +6,8 @@ import (
 	"testing"
 )
 
-func TestGetAccounts(t *testing.T) {
-	req := client.NewGetAccountsRequest()
+func TestGetTaxTypes(t *testing.T) {
+	req := client.NewGetTaxTypesRequest()
 	req.QueryParams().CompanyID = companyID
 	resp, err := req.Do()
 	if err != nil {
