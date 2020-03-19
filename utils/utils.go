@@ -11,7 +11,7 @@ import (
 	null "gopkg.in/guregu/null.v3"
 
 	"github.com/gorilla/schema"
-	"github.com/omniboost/go-exactglobe-webservices/odata"
+	"github.com/omniboost/go-sageone-za/odata"
 )
 
 type SchemaMarshaler interface {
