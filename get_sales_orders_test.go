@@ -8,6 +8,7 @@ import (
 
 func TestGetSalesOrders(t *testing.T) {
 	req := client.NewGetSalesOrdersRequest()
+	req.QueryParams().IncludeDetail = true
 	req.QueryParams().CompanyID = companyID
 	resp, err := req.Do()
 	if err != nil {

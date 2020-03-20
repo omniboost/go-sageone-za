@@ -34,7 +34,9 @@ func (r GetSalesOrdersRequest) NewGetSalesOrdersQueryParams() *GetSalesOrdersQue
 }
 
 type GetSalesOrdersQueryParams struct {
-	CompanyID int `schema:"CompanyId"`
+	CompanyID              int  `schema:"CompanyId"`
+	IncludeDetail          bool `schema:"includeDetail"`
+	IncludeCustomerDetails bool `schema:"includeCustomerDetails"`
 }
 
 func (p GetSalesOrdersQueryParams) ToURLValues() (url.Values, error) {
