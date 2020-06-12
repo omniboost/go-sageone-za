@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/omniboost/go-sageone-za/odata"
 	"github.com/omniboost/go-sageone-za/utils"
 )
 
@@ -30,10 +31,13 @@ type GetChartOfAccountsRequest struct {
 }
 
 func (r GetChartOfAccountsRequest) NewGetChartOfAccountsQueryParams() *GetChartOfAccountsQueryParams {
-	return &GetChartOfAccountsQueryParams{}
+	return &GetChartOfAccountsQueryParams{
+		Pagination: odata.NewPagination(),
+	}
 }
 
 type GetChartOfAccountsQueryParams struct {
+	odata.Pagination
 	CompanyID int `schema:"CompanyId"`
 }
 

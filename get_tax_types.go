@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/omniboost/go-sageone-za/odata"
 	"github.com/omniboost/go-sageone-za/utils"
 )
 
@@ -30,10 +31,13 @@ type GetTaxTypesRequest struct {
 }
 
 func (r GetTaxTypesRequest) NewGetTaxTypesQueryParams() *GetTaxTypesQueryParams {
-	return &GetTaxTypesQueryParams{}
+	return &GetTaxTypesQueryParams{
+		Pagination: odata.NewPagination(),
+	}
 }
 
 type GetTaxTypesQueryParams struct {
+	odata.Pagination
 	CompanyID int `schema:"CompanyId"`
 }
 
