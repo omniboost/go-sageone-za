@@ -275,7 +275,6 @@ func (c *Client) Do(req *http.Request, responseBody interface{}) (*http.Response
 		return httpResp, nil
 	}
 
-	// errorResponse := &ErrorResponse{Response: httpResp}
 	err = c.Unmarshal(httpResp.Body, &responseBody)
 	if err != nil {
 		return httpResp, err
@@ -362,16 +361,20 @@ func CheckResponse(r *http.Response) error {
 		return nil
 	}
 
-	err := checkContentType(r)
-	if err != nil {
-		errorResponse.Errors = append(errorResponse.Errors, errors.New(r.Status))
-		return errorResponse
-	}
-
 	// read data and copy it back
 	data, err := ioutil.ReadAll(r.Body)
 	r.Body = ioutil.NopCloser(bytes.NewReader(data))
 	if err != nil {
+		return errorResponse
+	}
+
+	err = checkContentType(r)
+	if err != nil {
+		if string(data) != "" {
+			errorResponse.Errors = append(errorResponse.Errors, errors.New(string(data)))
+		} else {
+			errorResponse.Errors = append(errorResponse.Errors, errors.New(r.Status))
+		}
 		return errorResponse
 	}
 
